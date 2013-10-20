@@ -158,7 +158,12 @@ void unpack_S2 (char * s2_out, char * s2_in) {
  * operations, no actual struct code is permitted
  */
 int pack_s3 (char * s3_out, char * s3_in) {
-  return -1;
+  unsigned long long * f0 = (unsigned long long *) s3_in;
+  if ( ((*f0) >> 29) != 0 )
+    return -1;
+  *( (unsigned long long *) s3_out ) = ( (*f0) << (64-29) );
+  
+  
 }
 
 /*
