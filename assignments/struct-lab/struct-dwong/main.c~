@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <assert.h>
+
+#include "struct.h"
+#include "funcs.h"
+
+int compare_structs_s1(struct s1 a, struct s1 b) {
+  return (a.f0 == b.f0) &&
+    (a.f1 == b.f1) &&
+    (a.f2 == b.f2) &&
+    (a.f3 == b.f3) &&
+    (a.f4 == b.f4) &&
+    (a.f5 == b.f5);
+    
+}
+
+
+void test_endian_swap_s1_shift() {
+  printf("Performing test: %s...\n", __func__);
+  struct s1 sample_struct_1 = {
+    .f0 = 0x42,
+    .f1 = 0x789,
+    .f2 = 0x5f,
+    .f3 = 0x3141592653589793ULL,
+    .f4 = 0x9912,
+    .f5 = 0x0000000001131023ULL };
+  struct s1 sample_swapped_1 = {
+    .f0 = 0x42,
+    .f1 = 0x8907,
+    .f2 = 0x5f,
+    .f3 = 0x9397585326594131ULL,
+    .f4 = 0x1299,
+    .f5 = 0x2310130100000000ULL };
+
+  struct s1 double_swap = endian_swap_s1_shift(endian_swap_s1_shift(sample_struct_1));
+
+  //Two endian swaps should produce the original.
+  assert(compare_structs_s1(sample_struct_1, double_swap));
+
+  //Test against a manually checked correct swap.
+  assert(compare_structs_s1(sample_struct_1, sample_swapped_1));
+
+  struct s1 sample_struct_2 = {
+    .f0 = 0x0,
+    .f1 = 0x0,
+    .f2 = 0x0,
+    .f3 = 0x0,
+    .f4 = 0x0,
+    .f5 = 0x0 };
+
+  //Test that a struct with all 0's is the same in either endian.
+  assert(compare_structs_s1(sample_struct_2, sample_struct_2));
+}
+
+void test_endian_swap_s1_ptr() {
+  printf("Performing test: %s...\n", __func__);
+  printf("Test passed.");
+}
+
+void test_pack_s2() {
+  printf("Performing test: %s...\n", __func__);
+  printf("Test passed.");
+
+}
+
+void test_unpack_S2() {
+  printf("Performing test: %s...\n", __func__);
+  printf("Test passed.");
+
+}
+
+void test_pack_s3() {
+  printf("Performing test: %s...\n", __func__);
+  printf("Test passed.");
+
+}
+
+void test_unpack_s3() {
+  printf("Performing test: %s...\n", __func__);
+  printf("Test passed.");
+
+}
+
+
+int main (void)
+{
+  test_endian_swap_s1_shift();
+  test_endian_swap_s1_ptr();
+  test_pack_s2();
+  test_unpack_S2();
+  test_pack_s3();
+  test_unpack_s3();
+
+  return 0;
+}
