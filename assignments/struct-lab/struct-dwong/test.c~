@@ -1,6 +1,0 @@
-int main() {
-  unsigned long long sample;
-  printf("size of unsigned long long: %d bytes\n", sizeof(sample));
-  signed long long sample2;
-  printf("size of signed long long: %d bytes\n", sizeof(sample2));
-}
