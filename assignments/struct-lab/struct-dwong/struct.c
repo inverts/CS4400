@@ -187,25 +187,27 @@ int pack_s3 (char * s3_out, char * s3_in) {
   *( (unsigned long long *) s3_out ) = ( (*f0) );// << (64-29) ?? Not sure why not.
   
   signed char * f1 = ((signed char *) s3_in) + 8;
-  if ( ((*f1) >> 7) != 0 )
+  if ( (*f1 >> 6) != (*f1 >> 7) )
     return -1;
 
-  unsigned long long * f2 = (unsigned long long *) (s3_in + 12);
-  if ( ((*f2) >> 36) != 0 )
+  long long * f2 = (long long *) (s3_in + 12);
+  if ( (*f2 >> 35) != (*f2 >> 36) )
     return -1;
 
   unsigned long long f3 = 0;
   signed char * f3_char = ((signed char *) (s3_in + 20));
-  memcpy_1(&f3, f3_char, 1);
-  if ( (f3 >> 3) != 0 )
+  if ( (*f3_char >> 2) != (*f3_char >> 3) )
     return -1;
+  memcpy_1(&f3, f3_char, 1);
+  f3 = (f3<<(64-3))>>(64-3);
 
   unsigned long long f4 = 0;
   unsigned int * f4_int = ((unsigned int *) (s3_in + 24));
   memcpy_1(&f4, f4_int, 4);
   if ( (f4 >> 7) != 0 )
     return -1;
-  *( (unsigned long long *) (4 + s3_out) ) = ( (*f1) | ((*f2) << 7) | (f3 << 43) | (f4 << 46) );
+  // Insert f1, f2, f3, and f4
+  *( (unsigned long long *) (4 + s3_out) ) = ( (*f1) | (((unsigned long long)(*f2)) << 7) | (f3 << 43) | (f4 << 46) );
 
   unsigned short f5_short = *((unsigned short *) (s3_in + 28));
   // No need to check if it can fit, the bit width is 16 already
@@ -223,18 +225,17 @@ int pack_s3 (char * s3_out, char * s3_in) {
  *
  * therefore, your job is to copy data referenced by the second
  * argument into space referenced by the first argument
- *
+gdgg *
  * RESTRICTION: all data movement must be through pointer/array/shift
  * operations, no actual struct code is permitted
  */
 void unpack_s3 (char * s3_out, char * s3_in) {
 
   unsigned long long f0 = ( *((unsigned long long *)s3_in) << (64-29) ) >> (64-29);
-  unsigned char f1 = (unsigned char)((*((unsigned int *)(s3_in + 4)) << (32-7)) >> (32-7));
-  unsigned long long f2 = (*((unsigned long long *)(s3_in + 4)) << 21) >> (7+21);
-  unsigned char f3 = (unsigned char)((*((unsigned int *)(s3_in + 8)) << 18) >> (18+11));
+  signed char f1 = (signed char)(((signed int)(*((unsigned int *)(s3_in + 4)) << (32-7))) >> (32-7));
+  signed long long f2 = ((signed long long)(*((unsigned long long *)(s3_in + 4)) << 21)) >> (7+21);
+  signed char f3 = (signed char)(((signed int)(*((unsigned int *)(s3_in + 8)) << 18)) >> (18+11));
   unsigned int f4 = (*((unsigned int *)(s3_in + 8)) << 11) >> (11+14);
-
 
   *((unsigned long long *) s3_out) = f0; 
   *((unsigned char *) (s3_out+8)) = f1; 
@@ -242,7 +243,6 @@ void unpack_s3 (char * s3_out, char * s3_in) {
   *((unsigned char *) (s3_out+20)) = f3; 
   *((unsigned int *) (s3_out+24)) = f4; 
   *((unsigned short *) (s3_out+28)) = *((unsigned short *)(s3_in + 12)); 
-  
 }
 
 
