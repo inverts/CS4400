@@ -39,7 +39,7 @@ signed long long switch_endian_signed(signed long long orig_ll) {
   signed long long new_ll = 0;
   //Basically doing an insertion sort for a reverse order.
   for (i=0; i<8; i++) {
-    new_ll = (new_ll << 8) | ((orig_ll >> (i*8)) & 0xff);
+    new_ll = (((unsigned long long)new_ll) << 8) | ((orig_ll >> (i*8)) & 0xff);
     //printf("new_ll: %llx \n", new_ll);
   }
   return new_ll; 
@@ -59,8 +59,7 @@ struct s1 endian_swap_s1_shift (struct s1 input) {
   output.f1 = switch_endian(input.f1); 
   output.f2 = input.f2;
   output.f3 = switch_endian(input.f3);
-  short temp = input.f4;
-  output.f4 = ((input.f4 >> 8) & 0x00ff) | (((unsigned int)temp) << 8 ); //Avoid negative left shifts.
+  output.f4 = ((input.f4 >> 8) & 0x00ff) | (((unsigned int)(input.f4)) << 8 ); //Avoid negative left shifts.
   /* One way of doing it, but requires using arrays (in the memcpy_1 function)
   unsigned long long u_new_ll;
   memcpy_1(&u_new_ll, &input.f5, sizeof(u_new_ll)); //Convert to unsigned

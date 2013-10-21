@@ -5,50 +5,46 @@
 #include "funcs.h"
 
 int compare_structs_s1(struct s1 a, struct s1 b) {
-  return (a.f0 == b.f0) &&
-    (a.f1 == b.f1) &&
-    (a.f2 == b.f2) &&
-    (a.f3 == b.f3) &&
-    (a.f4 == b.f4) &&
-    (a.f5 == b.f5);
-    
+  return (a.f0 == b.f0) && (a.f1 == b.f1) && (a.f2 == b.f2) && (a.f3 == b.f3) && (a.f4 == b.f4) && (a.f5 == b.f5);
 }
+
+struct s1 s1_empty_struct = { .f0 = 0x0, .f1 = 0x0, .f2 = 0x0, .f3 = 0x0, .f4 = 0x0, .f5 = 0x0 };
+struct s1 s1_ones_struct = {
+    .f0 = 0xff,
+    .f1 = 0xffffffffffffffffULL,
+    .f2 = 0xff,
+    .f3 = 0xffffffffffffffffULL,
+    .f4 = 0xffff,
+    .f5 = 0xffffffffffffffffULL };
+struct s1 sample_struct_1 = {
+  .f0 = 0x42,
+  .f1 = 0x789,
+  .f2 = 0x5f,
+  .f3 = 0x3141592653589793ULL,
+  .f4 = 0x9912,
+  .f5 = 0x0000000001131023ULL };
+struct s1 sample_swapped_1 = {
+  .f0 = 0x42,
+  .f1 = 0x8907000000000000ULL,
+  .f2 = 0x5f,
+  .f3 = 0x9397585326594131ULL,
+  .f4 = 0x1299,
+  .f5 = 0x2310130100000000ULL };
 
 void test_endian_swap_s1_shift() {
   printf("Performing test: %s...\n", __func__);
-  struct s1 sample_struct_1 = {
-    .f0 = 0x42,
-    .f1 = 0x789,
-    .f2 = 0x5f,
-    .f3 = 0x3141592653589793ULL,
-    .f4 = 0x9912,
-    .f5 = 0x0000000001131023ULL };
-  struct s1 sample_swapped_1 = {
-    .f0 = 0x42,
-    .f1 = 0x8907000000000000ULL,
-    .f2 = 0x5f,
-    .f3 = 0x9397585326594131ULL,
-    .f4 = 0x1299,
-    .f5 = 0x2310130100000000ULL };
-
-  struct s1 double_swap = endian_swap_s1_shift(endian_swap_s1_shift(sample_struct_1));
 
   //Two endian swaps should produce the original.
-  assert(compare_structs_s1(sample_struct_1, double_swap));
+  assert(compare_structs_s1(sample_struct_1, endian_swap_s1_shift(endian_swap_s1_shift(sample_struct_1)) ));
 
   //Test against a manually checked correct swap.
   assert(compare_structs_s1(endian_swap_s1_shift(sample_struct_1), sample_swapped_1));
 
-  struct s1 sample_struct_2 = {
-    .f0 = 0x0,
-    .f1 = 0x0,
-    .f2 = 0x0,
-    .f3 = 0x0,
-    .f4 = 0x0,
-    .f5 = 0x0 };
-
   //Test that a struct with all 0's is the same in either endian.
-  assert(compare_structs_s1(sample_struct_2, sample_struct_2));
+  assert(compare_structs_s1(endian_swap_s1_shift(s1_empty_struct), s1_empty_struct));
+
+  //Test that a struct with all 1's is the same in either endian.
+  assert(compare_structs_s1(endian_swap_s1_shift(s1_ones_struct), s1_ones_struct));
 
   //Test that the shift and pointer functions perform the same thing
   assert(compare_structs_s1(endian_swap_s1_ptr(sample_struct_1), endian_swap_s1_ptr(sample_struct_1)));
@@ -58,45 +54,29 @@ void test_endian_swap_s1_shift() {
 
 void test_endian_swap_s1_ptr() {
   printf("Performing test: %s...\n", __func__);
-  struct s1 sample_struct_1 = {
-    .f0 = 0x42,
-    .f1 = 0x789,
-    .f2 = 0x5f,
-    .f3 = 0x3141592653589793ULL,
-    .f4 = 0x9912,
-    .f5 = 0x0000000001131023ULL };
-  struct s1 sample_swapped_1 = {
-    .f0 = 0x42,
-    .f1 = 0x8907000000000000ULL,
-    .f2 = 0x5f,
-    .f3 = 0x9397585326594131ULL,
-    .f4 = 0x1299,
-    .f5 = 0x2310130100000000ULL };
-
-  struct s1 double_swap = endian_swap_s1_ptr(endian_swap_s1_ptr(sample_struct_1));
 
   //Two endian swaps should produce the original.
-  assert(compare_structs_s1(sample_struct_1, double_swap));
+  assert(compare_structs_s1(sample_struct_1, endian_swap_s1_ptr(endian_swap_s1_ptr(sample_struct_1)) ));
 
   //Test against a manually checked correct swap.
   assert(compare_structs_s1(endian_swap_s1_ptr(sample_struct_1), sample_swapped_1));
 
-  struct s1 sample_struct_2 = {
-    .f0 = 0x0,
-    .f1 = 0x0,
-    .f2 = 0x0,
-    .f3 = 0x0,
-    .f4 = 0x0,
-    .f5 = 0x0 };
-
   //Test that a struct with all 0's is the same in either endian.
-  assert(compare_structs_s1(sample_struct_2, sample_struct_2));
+  assert(compare_structs_s1(endian_swap_s1_ptr(s1_empty_struct), s1_empty_struct));
+
+  //Test that a struct with all 1's is the same in either endian.
+  assert(compare_structs_s1(endian_swap_s1_ptr(s1_ones_struct), s1_ones_struct));
 
   //Test that the shift and pointer functions perform the same thing
   assert(compare_structs_s1(endian_swap_s1_ptr(sample_struct_1), endian_swap_s1_ptr(sample_struct_1)));
 
   printf("Test passed.\n\n");
 }
+
+
+
+//------------------------------S2-TESTING---------------------------------
+
 
 struct s2 s2_sample_1 = {
   .f0 = 0x0,
@@ -153,13 +133,14 @@ int compare_structs_s2(struct s2 a, struct s2 b) {
   return (a.f0 == b.f0) && (a.f1 == b.f1) && (a.f2 == b.f2) && (a.f3 == b.f3) && (a.f4 == b.f4) && (a.f5 == b.f5);
 }
 
-void test_pack_s2() {
+void test_pack_and_unpack_s2() {
   printf("Performing test: %s...\n", __func__);
 
   struct s2_packed result_1;
   struct s2_packed result_2;
   struct s2_packed result_3;
 
+  // Pack the samples into the results
   pack_s2((char *) &result_1, (char *) &s2_sample_1); 
   pack_s2((char *) &result_2, (char *) &s2_sample_2); 
   pack_s2((char *) &result_3, (char *) &s2_sample_3); 
@@ -172,6 +153,7 @@ void test_pack_s2() {
   struct s2 unpacked_2;
   struct s2 unpacked_3;
 
+  // Unpack the results into new structs
   unpack_S2((char *) &unpacked_1, (char *) &result_1);
   unpack_S2((char *) &unpacked_2, (char *) &result_2);
   unpack_S2((char *) &unpacked_3, (char *) &result_3);
@@ -183,35 +165,9 @@ void test_pack_s2() {
   printf("Test passed.\n\n");
 }
 
-void test_unpack_S2() {
-  printf("Performing test: %s...\n", __func__);
-
-  struct s2 result_1;
-  struct s2 result_2;
-  struct s2 result_3;
-
-  unpack_S2((char *) &result_1, (char *) &s2_packed_1); 
-  unpack_S2((char *) &result_2, (char *) &s2_packed_2); 
-  unpack_S2((char *) &result_3, (char *) &s2_packed_3);
-
-  assert(compare_structs_s2(result_1, s2_sample_1));
-  assert(compare_structs_s2(result_2, s2_sample_2));
-  assert(compare_structs_s2(result_3, s2_sample_3));
-
-  printf("Test passed.\n\n");
-}
 
 
-
-
-
-
-
-
-
-
-
-
+//------------------------------S3-TESTING---------------------------------
 
 
 struct s3 s3_sample_1 = { .f0 = 0x0,  .f1 = 0x0,  .f2 = 0x0,  .f3 = 0x0,  .f4 = 0x0,  .f5 = 0x0 };
@@ -238,6 +194,7 @@ struct s3 s3_sample_4 = {
   .f5 = 0x2685 };
 
 struct s3_bitfield s3_packed_1 = { .f0 = 0x0,  .f1 = 0x0,  .f2 = 0x0,  .f3 = 0x0,  .f4 = 0x0,  .f5 = 0x0 };
+// s3_sample_2 cannot be packed without data loss.
 struct s3_bitfield s3_packed_3 = {
   .f0 = 0x1fffffff, 
   .f1 = -1, 
@@ -261,31 +218,12 @@ int compare_structs_s3(struct s3 a, struct s3 b) {
   return (a.f0 == b.f0) && (a.f1 == b.f1) && (a.f2 == b.f2) && (a.f3 == b.f3) && (a.f4 == b.f4) && (a.f5 == b.f5);
 }
 
-void test_pack_s3() {
+void test_pack_and_unpack_s3() {
   printf("Performing test: %s...\n", __func__);
-  struct s3* test = &s3_sample_3;
-  printf("size = %d\n", sizeof(*test));
-  int i;
-  for(i=0; i<sizeof(*test); i++)
-    printf("%d: %hhx\n", i, *(i+(unsigned char *)test));
 
-
-  struct s3_bitfield* s3_out = &s3_packed_3;
-  printf("size = %d\n", sizeof(*s3_out));
-  for(i=0; i<16; i++)
-    printf("%d: %hhx\n", i, *(i+(unsigned char *)s3_out));
-
-  printf ("f0: %llx \n", s3_packed_3.f0);
-  printf ("f1: %hhx \n", s3_packed_3.f1);
-  printf ("f2: %llx \n", s3_packed_3.f2);
-  printf ("f3: %hhx \n", s3_packed_3.f3);
-  printf ("f4: %x \n", s3_packed_3.f4);
-  printf ("f5: %hx  \n", s3_packed_3.f5);
-  
   struct s3_bitfield result_1;
   struct s3_bitfield result_2;
-  static const struct s3_bitfield empty_struct;
-  struct s3_bitfield result_3 = empty_struct;
+  struct s3_bitfield result_3;
   struct s3_bitfield result_4;
 
   //Pack first set of samples.
@@ -308,40 +246,20 @@ void test_pack_s3() {
   unpack_s3((char *) &unpacked_3, (char *) &result_3);
   unpack_s3((char *) &unpacked_4, (char *) &result_4);
 
-  for(i=0; i<32; i++)
-    printf("%d: %hhx\n", i, *(i+(unsigned char *)(&unpacked_4)));
-
-  printf ("f0: %llx \n", unpacked_4.f0);
-  printf ("f1: %hhx \n", unpacked_4.f1);
-  printf ("f2: %llx \n", unpacked_4.f2);
-  printf ("f3: %hhx \n", unpacked_4.f3);
-  printf ("f4: %x \n", unpacked_4.f4);
-  printf ("f5: %hx  \n", unpacked_4.f5);
-
-
+  //Are the unpacked results correct?
   assert(compare_structs_s3(unpacked_1, s3_sample_1));
-  assert(compare_structs_s3(unpacked_4, s3_sample_4));
   assert(compare_structs_s3(unpacked_3, s3_sample_3));
+  assert(compare_structs_s3(unpacked_4, s3_sample_4));
 
   printf("Test passed.\n\n");
-
 }
-
-void test_unpack_s3() {
-  printf("Performing test: %s...\n", __func__);
-  printf("Test passed.\n\n");
-
-}
-
 
 int main (void)
 {
   test_endian_swap_s1_shift();
   test_endian_swap_s1_ptr();
-  test_pack_s2();
-  test_unpack_S2();
-  test_pack_s3();
-  test_unpack_s3();
+  test_pack_and_unpack_s2();
+  test_pack_and_unpack_s3();
 
   return 0;
 }
