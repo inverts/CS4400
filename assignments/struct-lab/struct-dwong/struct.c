@@ -3,6 +3,10 @@
 #include <stdio.h>
 
 /* your six struct manipulation functions go here */
+
+/*
+ * Mimics the C memcpy function.
+ */
 void * memcpy_1(void * dest, const void * src, unsigned num_bytes) {
   int i;
   unsigned char * dest_cpy = (unsigned char *) dest;
@@ -13,9 +17,26 @@ void * memcpy_1(void * dest, const void * src, unsigned num_bytes) {
   return (void *) dest;
 }
 
+/*
+ * Switches/toggles the endianess of an unsigned long long.
+ */
 unsigned long long switch_endian(unsigned long long orig_ll) {
   int i;
   unsigned long long new_ll = 0;
+  //Basically doing an insertion sort for a reverse order.
+  for (i=0; i<8; i++) {
+    new_ll = (new_ll << 8) | ((orig_ll >> (i*8)) & 0xff);
+    //printf("new_ll: %llx \n", new_ll);
+  }
+  return new_ll; 
+}
+
+/*
+ * Switches/toggles the endianess of a signed long long.
+ */
+signed long long switch_endian_signed(signed long long orig_ll) {
+  int i;
+  signed long long new_ll = 0;
   //Basically doing an insertion sort for a reverse order.
   for (i=0; i<8; i++) {
     new_ll = (new_ll << 8) | ((orig_ll >> (i*8)) & 0xff);
@@ -39,13 +60,15 @@ struct s1 endian_swap_s1_shift (struct s1 input) {
   output.f2 = input.f2;
   output.f3 = switch_endian(input.f3);
   output.f4 = ((input.f4 >> 8) & 0x00ff) | ((input.f4 << 8) & 0xff00);
+  /* One way of doing it, but requires using arrays (in the memcpy_1 function)
   unsigned long long u_new_ll;
   memcpy_1(&u_new_ll, &input.f5, sizeof(u_new_ll)); //Convert to unsigned
   u_new_ll = switch_endian(u_new_ll); 
   long long new_ll;
   memcpy_1(&new_ll, &u_new_ll, sizeof(new_ll)); //Convert back to signed
   output.f5 = new_ll;
-
+  */
+  output.f5 = switch_endian_signed(input.f5);
   return output;
 }
 
@@ -161,9 +184,34 @@ int pack_s3 (char * s3_out, char * s3_in) {
   unsigned long long * f0 = (unsigned long long *) s3_in;
   if ( ((*f0) >> 29) != 0 )
     return -1;
-  *( (unsigned long long *) s3_out ) = ( (*f0) << (64-29) );
+  *( (unsigned long long *) s3_out ) = ( (*f0) );// << (64-29) ?? Not sure why not.
   
-  
+  signed char * f1 = ((signed char *) s3_in) + 8;
+  if ( ((*f1) >> 7) != 0 )
+    return -1;
+
+  unsigned long long * f2 = (unsigned long long *) (s3_in + 12);
+  if ( ((*f2) >> 36) != 0 )
+    return -1;
+
+  unsigned long long f3 = 0;
+  signed char * f3_char = ((signed char *) (s3_in + 20));
+  memcpy_1(&f3, f3_char, 1);
+  if ( (f3 >> 3) != 0 )
+    return -1;
+
+  unsigned long long f4 = 0;
+  unsigned int * f4_int = ((unsigned int *) (s3_in + 24));
+  memcpy_1(&f4, f4_int, 4);
+  if ( (f4 >> 7) != 0 )
+    return -1;
+  *( (unsigned long long *) (4 + s3_out) ) = ( (*f1) | ((*f2) << 7) | (f3 << 43) | (f4 << 46) );
+
+  unsigned short f5_short = *((unsigned short *) (s3_in + 28));
+  // No need to check if it can fit, the bit width is 16 already
+  *( (unsigned short *) (12 + s3_out) ) = f5_short;
+
+  return 0;
 }
 
 /*

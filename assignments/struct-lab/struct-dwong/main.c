@@ -223,29 +223,35 @@ struct s3 s3_sample_2 = {
   .f4 = 0x11235813,
   .f5 = 0x2685 };
 struct s3 s3_sample_3 = {
-  .f0 = 0xffffffffffffffffULL,
-  .f1 = 0xff,
-  .f2 = 0xffffffffffffffffLL,
-  .f3 = 0xff,
-  .f4 = 0xffffffff,
+  .f0 = 0x1fffffff, 
+  .f1 = 0x7f, 
+  .f2 = 0xfffffffffLL,
+  .f3 = 0x7,
+  .f4 = 0x7f,
   .f5 = 0xffff };
-
+struct s3 s3_sample_4 = {
+  .f0 = 0x3141592,
+  .f1 = 0x16,
+  .f2 = 0x271828185LL,
+  .f3 = 0x5,
+  .f4 = 0x11,
+  .f5 = 0x2685 };
 
 struct s3_bitfield s3_packed_1 = { .f0 = 0x0,  .f1 = 0x0,  .f2 = 0x0,  .f3 = 0x0,  .f4 = 0x0,  .f5 = 0x0 };
-struct s3_bitfield s3_packed_2 = {
-  .f0 = 0x3141592653589793ULL,
-  .f1 = 0x16,
-  .f2 = 0x2718281828459045LL,
-  .f3 = 0x12,
-  .f4 = 0x11235813,
-  .f5 = 0x2685 };
 struct s3_bitfield s3_packed_3 = {
-  .f0 = 0xffffffffffffffffULL,
-  .f1 = 0xff,
-  .f2 = 0xffffffffffffffffLL,
-  .f3 = 0xff,
-  .f4 = 0xffffffff,
+  .f0 = 0x1fffffff, 
+  .f1 = -1, 
+  .f2 = -1,
+  .f3 = -1,
+  .f4 = 0x7f,
   .f5 = 0xffff };
+struct s3_bitfield s3_packed_4 = {
+  .f0 = 0x3141592,
+  .f1 = 0x16,
+  .f2 = 0x271828185LL,
+  .f3 = -3,
+  .f4 = 0x11,
+  .f5 = 0x2685 };
 
 int compare_structs_s3_packed(struct s3_bitfield a, struct s3_bitfield b) {
   return (a.f0 == b.f0) && (a.f1 == b.f1) && (a.f2 == b.f2) && (a.f3 == b.f3) && (a.f4 == b.f4) && (a.f5 == b.f5);
@@ -255,35 +261,52 @@ int compare_structs_s3(struct s3 a, struct s3 b) {
   return (a.f0 == b.f0) && (a.f1 == b.f1) && (a.f2 == b.f2) && (a.f3 == b.f3) && (a.f4 == b.f4) && (a.f5 == b.f5);
 }
 
-
 void test_pack_s3() {
   printf("Performing test: %s...\n", __func__);
+  struct s3* test = &s3_sample_3;
+  printf("size = %d\n", sizeof(*test));
+  int i;
+  for(i=0; i<sizeof(*test); i++)
+    printf("%d: %hhx\n", i, *(i+(unsigned char *)test));
 
+
+  struct s3_bitfield* s3_out = &s3_packed_3;
+  printf("size = %d\n", sizeof(*s3_out));
+  for(i=0; i<16; i++)
+    printf("%d: %hhx\n", i, *(i+(unsigned char *)s3_out));
+
+  printf ("f0: %llx \n", s3_packed_3.f0);
+  printf ("f1: %hhx \n", s3_packed_3.f1);
+  printf ("f2: %llx \n", s3_packed_3.f2);
+  printf ("f3: %hhx \n", s3_packed_3.f3);
+  printf ("f4: %x \n", s3_packed_3.f4);
+  printf ("f5: %hx  \n", s3_packed_3.f5);
   
   struct s3_bitfield result_1;
   struct s3_bitfield result_2;
-  struct s3_bitfield result_3;
+  static const struct s3_bitfield empty_struct;
+  struct s3_bitfield result_3 = empty_struct;
+  struct s3_bitfield result_4;
 
   //Pack first set of samples.
-  pack_s3((char *) &result_1, (char *) &s3_sample_1); 
-  pack_s3((char *) &result_2, (char *) &s3_sample_2); 
-  pack_s3((char *) &result_3, (char *) &s3_sample_3); 
+  assert(pack_s3((char *) &result_1, (char *) &s3_sample_1) == 0); //Can be packed
+  assert(pack_s3((char *) &result_2, (char *) &s3_sample_2) == -1); //Cannot be packed
+  assert(pack_s3((char *) &result_3, (char *) &s3_sample_3) == 0); //Can be packed
+  assert(pack_s3((char *) &result_4, (char *) &s3_sample_4) == 0); //Can be packed
 
+  //Are the packed results correct?
   assert(compare_structs_s3_packed(result_1, s3_packed_1));
-  assert(compare_structs_s3_packed(result_2, s3_packed_2));
   assert(compare_structs_s3_packed(result_3, s3_packed_3));
+  assert(compare_structs_s3_packed(result_4, s3_packed_4));
 
   struct s3 unpacked_1;
-  struct s3 unpacked_2;
   struct s3 unpacked_3;
 
-  //Unpack the packed set of samples.
+  //Now, unpack the packed set of samples.
   unpack_s3((char *) &unpacked_1, (char *) &result_1);
-  unpack_s3((char *) &unpacked_2, (char *) &result_2);
   unpack_s3((char *) &unpacked_3, (char *) &result_3);
 
   assert(compare_structs_s3(unpacked_1, s3_sample_1));
-  assert(compare_structs_s3(unpacked_2, s3_sample_2));
   assert(compare_structs_s3(unpacked_3, s3_sample_3));
 
   printf("Test passed.\n\n");
