@@ -59,7 +59,8 @@ struct s1 endian_swap_s1_shift (struct s1 input) {
   output.f1 = switch_endian(input.f1); 
   output.f2 = input.f2;
   output.f3 = switch_endian(input.f3);
-  output.f4 = ((input.f4 >> 8) & 0x00ff) | ((input.f4 << 8) & 0xff00);
+  short temp = input.f4;
+  output.f4 = ((input.f4 >> 8) & 0x00ff) | (((unsigned int)temp) << 8 ); //Avoid negative left shifts.
   /* One way of doing it, but requires using arrays (in the memcpy_1 function)
   unsigned long long u_new_ll;
   memcpy_1(&u_new_ll, &input.f5, sizeof(u_new_ll)); //Convert to unsigned
@@ -229,6 +230,20 @@ int pack_s3 (char * s3_out, char * s3_in) {
  */
 void unpack_s3 (char * s3_out, char * s3_in) {
 
+  unsigned long long f0 = ( *((unsigned long long *)s3_in) << (64-29) ) >> (64-29);
+  unsigned char f1 = (unsigned char)((*((unsigned int *)(s3_in + 4)) << (32-7)) >> (32-7));
+  unsigned long long f2 = (*((unsigned long long *)(s3_in + 4)) << 21) >> (7+21);
+  unsigned char f3 = (unsigned char)((*((unsigned int *)(s3_in + 8)) << 18) >> (18+11));
+  unsigned int f4 = (*((unsigned int *)(s3_in + 8)) << 11) >> (11+14);
+
+
+  *((unsigned long long *) s3_out) = f0; 
+  *((unsigned char *) (s3_out+8)) = f1; 
+  *((unsigned long long *) (s3_out+12)) = f2; 
+  *((unsigned char *) (s3_out+20)) = f3; 
+  *((unsigned int *) (s3_out+24)) = f4; 
+  *((unsigned short *) (s3_out+28)) = *((unsigned short *)(s3_in + 12)); 
+  
 }
 
 

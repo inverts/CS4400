@@ -301,12 +301,26 @@ void test_pack_s3() {
 
   struct s3 unpacked_1;
   struct s3 unpacked_3;
+  struct s3 unpacked_4;
 
   //Now, unpack the packed set of samples.
   unpack_s3((char *) &unpacked_1, (char *) &result_1);
   unpack_s3((char *) &unpacked_3, (char *) &result_3);
+  unpack_s3((char *) &unpacked_4, (char *) &result_4);
+
+  for(i=0; i<32; i++)
+    printf("%d: %hhx\n", i, *(i+(unsigned char *)(&unpacked_4)));
+
+  printf ("f0: %llx \n", unpacked_4.f0);
+  printf ("f1: %hhx \n", unpacked_4.f1);
+  printf ("f2: %llx \n", unpacked_4.f2);
+  printf ("f3: %hhx \n", unpacked_4.f3);
+  printf ("f4: %x \n", unpacked_4.f4);
+  printf ("f5: %hx  \n", unpacked_4.f5);
+
 
   assert(compare_structs_s3(unpacked_1, s3_sample_1));
+  assert(compare_structs_s3(unpacked_4, s3_sample_4));
   assert(compare_structs_s3(unpacked_3, s3_sample_3));
 
   printf("Test passed.\n\n");
